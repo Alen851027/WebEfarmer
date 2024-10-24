@@ -15,19 +15,22 @@
         }
 
         #unity-container {
-            position: absolute; /* 改用 absolute 定位 */
+            position: absolute;
             top: 0;
             left: 0;
-            width: 100vw; /* 佔滿整個視窗寬度 */
-            height: 100vh; /* 佔滿整個視窗高度 */
+            width: 100%; /* 確保寬度為 100% */
+            height: 100%; /* 確保高度為 100% */
         }
 
         canvas {
-            width: 100%;
-            height: 100%;
-            object-fit: contain; /* 確保內容保持比例並縮放 */
-            display: block; /* 讓畫布在頁面上居中 */
-            margin: auto; /* 水平居中 */
+            display: block;
+            margin: auto;
+            position: absolute; /* 使其在容器內絕對定位 */
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%); /* 使用 transform 來居中 */
+            object-fit: cover; /* 使用 cover 以確保內容填滿整個畫布 */
+        }
         }
     </style>
 </head>
@@ -41,10 +44,10 @@
             </div>
         </div>
         <div id="unity-warning"></div>
-        <div id="unity-footer">
+        <!--<div id="unity-footer">
             <div id="unity-webgl-logo"></div>
             <div id="unity-build-title">WebProjectEfarmer</div>
-        </div>
+        </div>-->
     </div>
     <script>
         var container = document.querySelector("#unity-container");
@@ -85,23 +88,11 @@
         };
 
         function resizeCanvas() {
-            var aspectRatio = 16 / 9; // 根據遊戲設置的比例
-            var width = window.innerWidth;
-            var height = window.innerHeight;
-
-            // 根據螢幕大小調整寬高
-            if (width / height > aspectRatio) {
-                width = height * aspectRatio;
-            } else {
-                height = width / aspectRatio;
-            }
-
-            canvas.width = width;
-            canvas.height = height;
-            canvas.style.width = width + 'px';
-            canvas.style.height = height + 'px';
+            canvas.width = window.innerWidth; // 設置畫布寬度
+            canvas.height = window.innerHeight; // 設置畫布高度
+            canvas.style.width = '100%'; // 設置畫布的顯示寬度
+            canvas.style.height = '100%'; // 設置畫布的顯示高度
         }
-
         // 在窗口調整大小時調整畫布大小
         window.addEventListener('resize', resizeCanvas);
 
