@@ -7,36 +7,27 @@
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
     <link rel="stylesheet" href="TemplateData/style.css">
     <style>
-        body, html {
-            margin: 0;
-            padding: 0;
-            overflow: hidden; /* 隱藏溢出的內容 */
-            height: 100%; /* 確保 body 和 html 填滿整個視窗 */
-        }
-
-        #unity-container {
-            position: absolute;
+        /* 提示訊息的樣式 */
+        #fullscreen-message {
+            background-color: rgba(0, 0, 0, 0.8);
+            color: white;
+            position: fixed; /* 使用 fixed 使其總是顯示在畫面中心 */
             top: 0;
             left: 0;
-            width: 100%; /* 確保寬度為 100% */
-            height: 100%; /* 確保高度為 100% */
-        }
-
-        canvas {
-            display: block;
-            margin: auto;
-            position: absolute; /* 使其在容器內絕對定位 */
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%); /* 使用 transform 來居中 */
-            object-fit: cover; /* 使用 cover 以確保內容填滿整個畫布 */
-        }
+            width: 100%;
+            height: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-size: 24px;
+            z-index: 9999; /* 確保提示在最上層 */
+            display: none; /* 初始隱藏 */
         }
     </style>
 </head>
 <body>
     <div id="unity-container" class="unity-desktop">
-        <canvas id="unity-canvas" tabindex="-1"></canvas>
+        <canvas id="unity-canvas" width=960 height=600 tabindex="-1"></canvas>
         <div id="unity-loading-bar">
             <div id="unity-logo"></div>
             <div id="unity-progress-bar-empty">
@@ -44,10 +35,11 @@
             </div>
         </div>
         <div id="unity-warning"></div>
-        <!--<div id="unity-footer">
+        <div id="unity-footer">
             <div id="unity-webgl-logo"></div>
             <div id="unity-build-title">WebProjectEfarmer</div>
-        </div>-->
+        </div>
+        <div id="fullscreen-message">點擊畫面進入</div>
     </div>
     <script>
         var container = document.querySelector("#unity-container");
@@ -55,65 +47,74 @@
         var loadingBar = document.querySelector("#unity-loading-bar");
         var progressBarFull = document.querySelector("#unity-progress-bar-full");
         var warningBanner = document.querySelector("#unity-warning");
+        var fullscreenMessage = document.querySelector("#fullscreen-message");
 
-        function unityShowBanner(msg, type) {
-            function updateBannerVisibility() {
-                warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        // 自動進入全螢幕模式
+        function autoFullscreen() {
+            if (canvas.requestFullscreen) {
+                canvas.requestFullscreen();
+            } else if (canvas.mozRequestFullScreen) { // Firefox
+                canvas.mozRequestFullScreen();
+            } else if (canvas.webkitRequestFullscreen) { // Chrome, Safari and Opera
+                canvas.webkitRequestFullscreen();
+            } else if (canvas.msRequestFullscreen) { // IE/Edge
+                canvas.msRequestFullscreen();
             }
-            var div = document.createElement('div');
-            div.innerHTML = msg;
-            warningBanner.appendChild(div);
-            if (type === 'error') div.style = 'background: red; padding: 10px;';
-            else if (type === 'warning') {
-                div.style = 'background: yellow; padding: 10px;';
-                setTimeout(function () {
-                    warningBanner.removeChild(div);
-                    updateBannerVisibility();
-                }, 5000);
-            }
-            updateBannerVisibility();
         }
 
-        var buildUrl = "Build";
-        var loaderUrl = buildUrl + "/WebHtml.loader.js";
-        var config = {
-            dataUrl: buildUrl + "/WebHtml.data",
-            frameworkUrl: buildUrl + "/WebHtml.framework.js",
-            codeUrl: buildUrl + "/WebHtml.wasm",
-            streamingAssetsUrl: "StreamingAssets",
-            companyName: "DefaultCompany",
-            productName: "WebProjectEfarmer",
-            productVersion: "0.1",
-            showBanner: unityShowBanner,
+        // 讓使用者點擊時自動進入全螢幕
+        function enableFullscreenOnClick() {
+            fullscreenMessage.style.display = "flex"; // 顯示提示訊息
+            document.addEventListener('click', function () {
+                autoFullscreen();
+                fullscreenMessage.style.display = "none"; // 隱藏提示訊息
+            }, { once: true }); // 確保只觸發一次
+        }
+
+        // 檢查是否為行動裝置
+        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+            // 行動裝置樣式：填滿整個瀏覽器客戶端區域
+            var meta = document.createElement('meta');
+            meta.name = 'viewport';
+            meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+            document.getElementsByTagName('head')[0].appendChild(meta);
+            container.className = "unity-mobile";
+            canvas.className = "unity-mobile";
+
+            // 顯示提示訊息，並在點擊時進入全螢幕
+            enableFullscreenOnClick();
+        } else {
+            // 桌面樣式：將遊戲畫布渲染在可以最大化到全螢幕的窗口中
+            canvas.style.width = "960px";
+            canvas.style.height = "600px";
+
+            // 顯示提示訊息，並在點擊時進入全螢幕
+            enableFullscreenOnClick();
+        }
+
+        loadingBar.style.display = "block";
+
+        var script = document.createElement("script");
+        script.src = "Build/WebHtml.loader.js";
+        script.onload = () => {
+            createUnityInstance(canvas, {
+                dataUrl: "Build/WebHtml.data",
+                frameworkUrl: "Build/WebHtml.framework.js",
+                codeUrl: "Build/WebHtml.wasm",
+                streamingAssetsUrl: "StreamingAssets",
+                companyName: "DefaultCompany",
+                productName: "WebProjectEfarmer",
+                productVersion: "0.1",
+            }, (progress) => {
+                progressBarFull.style.width = 100 * progress + "%";
+            }).then((unityInstance) => {
+                loadingBar.style.display = "none";
+            }).catch((message) => {
+                alert(message);
+            });
         };
 
-        function resizeCanvas() {
-            canvas.width = window.innerWidth; // 設置畫布寬度
-            canvas.height = window.innerHeight; // 設置畫布高度
-            canvas.style.width = '100%'; // 設置畫布的顯示寬度
-            canvas.style.height = '100%'; // 設置畫布的顯示高度
-        }
-        // 在窗口調整大小時調整畫布大小
-        window.addEventListener('resize', resizeCanvas);
-
-        // 當加載完成後設置畫布大小
-        window.addEventListener('load', () => {
-            resizeCanvas(); // 初始化時調整
-            loadingBar.style.display = "block";
-
-            var script = document.createElement("script");
-            script.src = loaderUrl;
-            script.onload = () => {
-                createUnityInstance(canvas, config, (progress) => {
-                    progressBarFull.style.width = 100 * progress + "%";
-                }).then((unityInstance) => {
-                    loadingBar.style.display = "none";
-                }).catch((message) => {
-                    alert(message);
-                });
-            };
-            document.body.appendChild(script);
-        });
+        document.body.appendChild(script);
     </script>
 </body>
 </html>
