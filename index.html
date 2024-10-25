@@ -11,44 +11,59 @@
         body, html {
             margin: 0;
             padding: 0;
-            height: 100%; /* 確保 body 和 html 填滿整個視窗 */
-            overflow: hidden; /* 隱藏溢出的內容 */
-            display: flex; /* 使用 flexbox 進行佈局 */
-            align-items: center; /* 垂直居中 */
-            justify-content: center; /* 水平居中 */
-            background-color: black; /* 設置背景顏色為黑色 */
+            height: 100%;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: black;
         }
 
         #unity-container {
-            position: relative; /* 使用相對定位 */
-            width: 100%; /* 佔滿整個容器寬度 */
-            height: 100%; /* 佔滿整個容器高度 */
-            display: flex; /* 使用 flexbox */
-            align-items: center; /* 垂直居中 */
-            justify-content: center; /* 水平居中 */
-            overflow: hidden; /* 隱藏溢出的內容 */
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
         }
 
         canvas {
-            width: 100%; /* 佔滿容器的寬度 */
-            height: 100%; /* 佔滿容器的高度 */
-            max-width: 100%; /* 最大寬度為 100% */
-            max-height: 100%; /* 最大高度為 100% */
-            object-fit: cover; /* 確保內容保持比例並填滿畫布 */
-            display: block; /* 讓畫布在頁面上居中 */
+            width: 100%;
+            height: 100%;
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+            display: block;
         }
 
-        /* 在小螢幕上進行額外的調整 */
+        /* 全螢幕按鈕樣式 */
+        #fullscreen-button {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 10px 15px;
+            font-size: 16px;
+            color: white;
+            background-color: rgba(0, 0, 0, 0.5);
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            z-index: 10;
+        }
+
         @media (max-width: 600px) {
             canvas {
-                width: 100%; /* 在小螢幕上，佔滿整個容器寬度 */
-                height: auto; /* 高度自動調整 */
+                width: 100%;
+                height: auto;
             }
         }
     </style>
 </head>
 <body>
     <div id="unity-container" class="unity-desktop">
+        <button id="fullscreen-button" onclick="toggleFullscreen()">全螢幕</button>
         <canvas id="unity-canvas" tabindex="-1"></canvas>
         <div id="unity-loading-bar">
             <div id="unity-logo"></div>
@@ -101,26 +116,22 @@
             var width = window.innerWidth;
             var height = window.innerHeight;
 
-            // 根據螢幕大小調整寬高
             if (width / height > aspectRatio) {
-                width = height * aspectRatio; // 根據高度設置寬度
+                width = height * aspectRatio;
             } else {
-                height = width / aspectRatio; // 根據寬度設置高度
+                height = width / aspectRatio;
             }
 
-            // 設置畫布大小
             canvas.width = width;
             canvas.height = height;
             canvas.style.width = width + 'px';
             canvas.style.height = height + 'px';
         }
 
-        // 在窗口調整大小時調整畫布大小
         window.addEventListener('resize', resizeCanvas);
 
-        // 當加載完成後設置畫布大小
         window.addEventListener('load', () => {
-            resizeCanvas(); // 初始化時調整
+            resizeCanvas();
             loadingBar.style.display = "block";
 
             var script = document.createElement("script");
@@ -136,6 +147,17 @@
             };
             document.body.appendChild(script);
         });
+
+        // 切換全螢幕模式
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                container.requestFullscreen().catch(err => {
+                    alert(`無法進入全螢幕模式: ${err.message}`);
+                });
+            } else {
+                document.exitFullscreen();
+            }
+        }
     </script>
 </body>
 </html>
