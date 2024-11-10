@@ -2,7 +2,7 @@
 <html lang="en-us">
 <head>
     <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> <!-- 支持響應式設計 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <title>Unity WebGL Player | WebProjectEfarmer</title>
     <link rel="shortcut icon" href="TemplateData/favicon.ico">
@@ -30,15 +30,12 @@
         }
 
         canvas {
-            width: 100%;
-            height: 100%;
             max-width: 100%;
             max-height: 100%;
-            object-fit: cover;
+            object-fit: contain;
             display: block;
         }
 
-        /* 全螢幕按鈕樣式 */
         #fullscreen-button {
             position: absolute;
             top: 10px;
@@ -51,13 +48,6 @@
             border-radius: 5px;
             cursor: pointer;
             z-index: 10;
-        }
-
-        @media (max-width: 600px) {
-            canvas {
-                width: 100%;
-                height: auto;
-            }
         }
     </style>
 </head>
@@ -99,11 +89,11 @@
         }
 
         var buildUrl = "Build";
-        var loaderUrl = buildUrl + "/WebHtml.loader.js";
+        var loaderUrl = buildUrl + "/Effarmer.loader.js";
         var config = {
-            dataUrl: buildUrl + "/WebHtml.data",
-            frameworkUrl: buildUrl + "/WebHtml.framework.js",
-            codeUrl: buildUrl + "/WebHtml.wasm",
+            dataUrl: buildUrl + "/Effarmer.data",
+            frameworkUrl: buildUrl + "/Effarmer.framework.js",
+            codeUrl: buildUrl + "/Effarmer.wasm",
             streamingAssetsUrl: "StreamingAssets",
             companyName: "DefaultCompany",
             productName: "WebProjectEfarmer",
@@ -112,20 +102,18 @@
         };
 
         function resizeCanvas() {
-            var aspectRatio = 16 / 9; // 根據遊戲設置的比例
-            var width = window.innerWidth;
-            var height = window.innerHeight;
+            var aspectRatio = 16 / 9; // 您的畫布設計比例，這裡假設是 16:9
+            var windowRatio = window.innerWidth / window.innerHeight;
 
-            if (width / height > aspectRatio) {
-                width = height * aspectRatio;
+            if (windowRatio > aspectRatio) {
+                // 螢幕寬高比大於設計比例，調整寬度
+                canvas.style.width = `${window.innerHeight * aspectRatio}px`;
+                canvas.style.height = `${window.innerHeight}px`;
             } else {
-                height = width / aspectRatio;
+                // 螢幕寬高比小於設計比例，調整高度
+                canvas.style.width = `${window.innerWidth}px`;
+                canvas.style.height = `${window.innerWidth / aspectRatio}px`;
             }
-
-            canvas.width = width;
-            canvas.height = height;
-            canvas.style.width = width + 'px';
-            canvas.style.height = height + 'px';
         }
 
         window.addEventListener('resize', resizeCanvas);
@@ -133,7 +121,6 @@
         window.addEventListener('load', () => {
             resizeCanvas();
             loadingBar.style.display = "block";
-
             var script = document.createElement("script");
             script.src = loaderUrl;
             script.onload = () => {
@@ -148,7 +135,6 @@
             document.body.appendChild(script);
         });
 
-        // 切換全螢幕模式
         function toggleFullscreen() {
             if (!document.fullscreenElement) {
                 container.requestFullscreen().catch(err => {
